@@ -26,7 +26,7 @@ function PackageJson(name, { mainDir, esmDir } = {}) {
 
 function makeSubpackage(name, opts) {
   const dir = path.resolve(__dirname, `../${name}`);
-  mkdirSync(dir);
+  mkdirSync(dir, {recursive: true});
   writeFileSync(`${dir}/package.json`, PackageJson(name, opts));
 }
 
