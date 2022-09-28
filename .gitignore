@@ -13,3 +13,16 @@ npm
 .vscode/*
 .rpt2_cache/
 .rush/
+
+ai/
+client/
+core/
+debug/
+internal/
+master/
+multiplayer/
+plugins/
+react-native/
+react/
+server/
+testing/
