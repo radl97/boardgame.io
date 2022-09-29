@@ -81,12 +81,14 @@ export const configureRouter = ({
   auth,
   games,
   uuid = () => nanoid(11),
+  botCredentials,
 }: {
   router: Router<any, Server.AppCtx>;
   auth: Auth;
   games: Game[];
   uuid?: () => string;
   db: StorageAPI.Sync | StorageAPI.Async;
+  botCredentials: string;
 }) => {
   /**
    * List available games.
@@ -129,6 +131,7 @@ export const configureRouter = ({
       setupData,
       uuid,
       unlisted,
+      botCredentials
     });
 
     const body: LobbyAPI.CreatedMatch = { matchID };
@@ -374,6 +377,7 @@ export const configureRouter = ({
       setupData,
       uuid,
       unlisted,
+      botCredentials
     });
     metadata.nextMatchID = nextMatchID;
 
