@@ -349,32 +349,6 @@ export class Master {
       }
     }
 
-    // If the game doesn't exist, then create one on demand.
-    // TODO: Move this out of the sync call.
-    if (state === undefined) {
-      const match = createMatch({
-        game: this.game,
-        unlisted: true,
-        numPlayers,
-        setupData: undefined,
-      });
-
-      if ('setupDataError' in match) {
-        return { error: 'game requires setupData' };
-      }
-
-      initialState = state = match.initialState;
-      metadata = match.metadata;
-
-      this.subscribeCallback({ state, matchID });
-
-      if (StorageAPI.isSynchronous(this.storageAPI)) {
-        this.storageAPI.createMatch(key, { initialState, metadata });
-      } else {
-        await this.storageAPI.createMatch(key, { initialState, metadata });
-      }
-    }
-
     const filteredMetadata = metadata ? filterMatchData(metadata) : undefined;
 
     const syncInfo: SyncInfo = {
