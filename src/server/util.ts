@@ -15,7 +15,7 @@ export const createMetadata = ({
   numPlayers: number;
   setupData?: any;
   unlisted?: boolean;
-  botCredentials: string;
+  botCredentials?: string;
 }): Server.MatchData => {
   const metadata: Server.MatchData = {
     gameName: game.name,
@@ -31,12 +31,14 @@ export const createMetadata = ({
     metadata.players[playerIndex] = { id: playerIndex };
   }
 
-  // TODO make "which players are bots" more versatile
-  for (var i = 1; i < numPlayers; i++) {
-    const id = i+"";
-    metadata.players[id].name = 'Bot';
-    metadata.players[id].credentials = botCredentials;
-    metadata.players[id].isConnected = true;
+  if (botCredentials === undefined) {
+    // TODO make "which players are bots" more versatile
+    for (var i = 1; i < numPlayers; i++) {
+      const id = i+"";
+      metadata.players[id].name = 'Bot';
+      metadata.players[id].credentials = botCredentials;
+      metadata.players[id].isConnected = true;
+    }
   }
 
   return metadata;
@@ -58,7 +60,7 @@ export const createMatch = ({
   numPlayers: number;
   setupData: any;
   unlisted: boolean;
-  botCredentials: string;
+  botCredentials?: string;
 }):
   | { metadata: Server.MatchData; initialState: State }
   | { setupDataError: string } => {
