@@ -188,8 +188,7 @@ class Lobby extends React.Component<LobbyProps, LobbyState> {
   _updateCredentials = (playerName: string, credentials: string) => {
     this.setState((prevState) => {
       // clone store or componentDidUpdate will not be triggered
-      const store = Object.assign({}, prevState.credentialStore);
-      store[playerName] = credentials;
+      const store = { ...prevState.credentialStore, [playerName]: credentials };
       return { credentialStore: store };
     });
   };
