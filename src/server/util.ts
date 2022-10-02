@@ -31,7 +31,7 @@ export const createMetadata = ({
     metadata.players[playerIndex] = { id: playerIndex };
   }
 
-  if (botCredentials === undefined) {
+  if (botCredentials !== undefined) {
     // TODO make "which players are bots" more versatile
     for (var i = 1; i < numPlayers; i++) {
       const id = i+"";
