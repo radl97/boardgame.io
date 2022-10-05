@@ -88,6 +88,7 @@ class _LobbyConnectionImpl {
       const json = await this.client.joinMatch(gameName, matchID, {
         playerID,
         playerName: this.playerName,
+        credentials: this.playerCredentials,
       });
       inst.players[Number.parseInt(playerID)].name = this.playerName;
       this.playerCredentials = json.playerCredentials;

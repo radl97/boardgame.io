@@ -131,7 +131,7 @@ export const configureRouter = ({
       setupData,
       uuid,
       unlisted,
-      botCredentials
+      botCredentials,
     });
 
     const body: LobbyAPI.CreatedMatch = { matchID };
@@ -226,6 +226,7 @@ export const configureRouter = ({
    */
   router.post('/games/:name/:id/join', koaBody(), async (ctx) => {
     let playerID = ctx.request.body.playerID;
+    let playerCredentials = ctx.request.body.credentials;
     const playerName = ctx.request.body.playerName;
     const data = ctx.request.body.data;
     const matchID = ctx.params.id;
@@ -262,7 +263,10 @@ export const configureRouter = ({
       metadata.players[playerID].data = data;
     }
     metadata.players[playerID].name = playerName;
-    const playerCredentials = await auth.generateCredentials(ctx);
+    // TODO majd letiltom??
+    if (playerCredentials === undefined) {
+      playerCredentials = await auth.generateCredentials(ctx);
+    }
     metadata.players[playerID].credentials = playerCredentials;
 
     await db.setMetadata(matchID, metadata);
@@ -377,7 +381,7 @@ export const configureRouter = ({
       setupData,
       uuid,
       unlisted,
-      botCredentials
+      botCredentials,
     });
     metadata.nextMatchID = nextMatchID;
 

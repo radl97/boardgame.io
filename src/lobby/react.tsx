@@ -49,7 +49,7 @@ type LobbyProps = {
     phase: LobbyPhases;
     playerName: string;
     runningMatch?: RunningMatch;
-    handleEnterLobby: (playerName: string) => void;
+    handleEnterLobby: (playerName: string, credentials: string) => void;
     handleExitLobby: () => Promise<void>;
     handleCreateMatch: (gameName: string, numPlayers: number) => Promise<void>;
     handleJoinMatch: (
@@ -199,8 +199,9 @@ class Lobby extends React.Component<LobbyProps, LobbyState> {
     this.forceUpdate();
   };
 
-  _enterLobby = (playerName: string) => {
+  _enterLobby = (playerName: string, credentials: string) => {
     this._startRefreshInterval();
+    this._updateCredentials(playerName, credentials);
     this.setState({ playerName, phase: LobbyPhases.LIST });
   };
 
