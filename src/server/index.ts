@@ -118,6 +118,8 @@ export function Server({
   }
   transport.init(app, games, origins);
 
+  let botCredentials = transport.botCredentials;
+
   const router = new Router<any, ServerTypes.AppCtx>();
 
   return {
@@ -129,7 +131,7 @@ export function Server({
 
     run: async (portOrConfig: number | ServerConfig, callback?: () => void) => {
       const serverRunConfig = createServerRunConfig(portOrConfig, callback);
-      configureRouter({ router, db, games, uuid, auth });
+      configureRouter({ router, db, games, uuid, auth, botCredentials });
 
       // DB
       await db.connect();

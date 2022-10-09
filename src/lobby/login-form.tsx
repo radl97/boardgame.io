@@ -10,21 +10,24 @@ import React from 'react';
 
 type LoginFormProps = {
   playerName?: string;
-  onEnter: (playerName: string) => void;
+  onEnter: (playerName: string, credentials: string) => void;
 };
 
 type LoginFormState = {
   playerName?: string;
+  credentials?: string;
   nameErrorMsg: string;
 };
 
 class LobbyLoginForm extends React.Component<LoginFormProps, LoginFormState> {
   static defaultProps = {
     playerName: '',
+    credentials: '',
   };
 
   state = {
     playerName: this.props.playerName,
+    credentials: '',
     nameErrorMsg: '',
   };
 
@@ -36,6 +39,13 @@ class LobbyLoginForm extends React.Component<LoginFormProps, LoginFormState> {
           type="text"
           value={this.state.playerName}
           onChange={this.onChangePlayerName}
+          onKeyPress={this.onKeyPress}
+        />
+        <input
+          type="text"
+          value={this.state.credentials}
+          placeholder="Credentials"
+          onChange={this.onChangeCredentials}
           onKeyPress={this.onKeyPress}
         />
         <span className="buttons">
@@ -54,7 +64,7 @@ class LobbyLoginForm extends React.Component<LoginFormProps, LoginFormState> {
 
   onClickEnter = () => {
     if (this.state.playerName === '') return;
-    this.props.onEnter(this.state.playerName);
+    this.props.onEnter(this.state.playerName, this.state.credentials);
   };
 
   onKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -68,6 +78,14 @@ class LobbyLoginForm extends React.Component<LoginFormProps, LoginFormState> {
     this.setState({
       playerName: name,
       nameErrorMsg: name.length > 0 ? '' : 'empty player name',
+    });
+  };
+
+  onChangeCredentials = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const name = event.target.value.trim();
+    this.setState({
+      credentials: name,
+      nameErrorMsg: name.length > 0 ? '' : 'empty credentials',
     });
   };
 }

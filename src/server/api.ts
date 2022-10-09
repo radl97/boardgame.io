@@ -81,12 +81,14 @@ export const configureRouter = ({
   auth,
   games,
   uuid = () => nanoid(11),
+  botCredentials,
 }: {
   router: Router<any, Server.AppCtx>;
   auth: Auth;
   games: Game[];
   uuid?: () => string;
   db: StorageAPI.Sync | StorageAPI.Async;
+  botCredentials: string;
 }) => {
   /**
    * List available games.
@@ -129,6 +131,7 @@ export const configureRouter = ({
       setupData,
       uuid,
       unlisted,
+      botCredentials,
     });
 
     const body: LobbyAPI.CreatedMatch = { matchID };
@@ -212,6 +215,80 @@ export const configureRouter = ({
   });
 
   /**
+   * GET /teams/123-4567-890
+   *
+   * teamState: {
+   *   "name": "Valami Únikód árvíztűrő tükörfúrógép",
+   *   "playerName": "ekezet nelkul valami csapatnev esetleg",
+   *   "credentials": "random generált cucc, a matchhez bejelentkezett játékos",
+   *   "relay": {
+   *     "state": "FINISHED",
+   *     "score": 123,
+   *     "startAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "endAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "matchID": "xxx"
+   *   },
+   *   "strategy": {
+   *     "state": "IN PROGRESS",
+   *     "startAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "endAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "matchID": "xxx"
+   *   },
+   *   // INIT, RELAY, STRATEGY, FINISHED
+   *   "pageState": "RELAY"
+   * }
+   *
+   * @param {string} code Team code
+   * @return - a TeamState object
+   *
+   * TODO
+   */
+
+  /**
+   * POST /teams/123-4567-890/start-relay
+   * @param {string} code Team code
+   * @return - {"matchID": "xxx"}
+   */
+
+  /**
+   * Get data about a specific match.
+   *
+   * @param {string} name - The name of the game.
+   * @param {string} id - The ID of the match.
+   * @return - A match object.
+   */
+   router.get('/games/:name/:id/logs', async (ctx) => {
+    // TODO authorize!!
+    const matchID = ctx.params.id;
+    const { log } = await (db as StorageAPI.Async).fetch(matchID, {
+      log: true,
+    });
+    if (!log) {
+      ctx.throw(404, 'Match ' + matchID + ' not found');
+    }
+    ctx.body = log;
+  });
+
+  /**
+   * Get data about a specific match.
+   *
+   * @param {string} name - The name of the game.
+   * @param {string} id - The ID of the match.
+   * @return - A match object.
+   */
+   router.get('/games/:name/:id/state', async (ctx) => {
+    // TODO authorize!!
+    const matchID = ctx.params.id;
+    const { state } = await (db as StorageAPI.Async).fetch(matchID, {
+      state: true,
+    });
+    if (!state) {
+      ctx.throw(404, 'Match ' + matchID + ' not found');
+    }
+    ctx.body = state;
+  });
+
+  /**
    * Join a given match.
    *
    * @param {string} name - The name of the game.
@@ -223,6 +300,7 @@ export const configureRouter = ({
    */
   router.post('/games/:name/:id/join', koaBody(), async (ctx) => {
     let playerID = ctx.request.body.playerID;
+    let playerCredentials = ctx.request.body.credentials;
     const playerName = ctx.request.body.playerName;
     const data = ctx.request.body.data;
     const matchID = ctx.params.id;
@@ -259,7 +337,10 @@ export const configureRouter = ({
       metadata.players[playerID].data = data;
     }
     metadata.players[playerID].name = playerName;
-    const playerCredentials = await auth.generateCredentials(ctx);
+    // TODO majd letiltom??
+    if (playerCredentials === undefined) {
+      playerCredentials = await auth.generateCredentials(ctx);
+    }
     metadata.players[playerID].credentials = playerCredentials;
 
     await db.setMetadata(matchID, metadata);
@@ -374,6 +455,7 @@ export const configureRouter = ({
       setupData,
       uuid,
       unlisted,
+      botCredentials,
     });
     metadata.nextMatchID = nextMatchID;
 

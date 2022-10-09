@@ -20,6 +20,8 @@ import type { Game, Server } from '../../types';
 import type { GenericPubSub } from './pubsub/generic-pub-sub';
 import type { IntermediateTransportData } from '../../master/master';
 import { InMemoryPubSub } from './pubsub/in-memory-pub-sub';
+import * as StorageAPI from '../db/base';
+import { GetBotPlayer } from '../../client/transport/local';
 
 const PING_TIMEOUT = 20 * 1e3;
 const PING_INTERVAL = 10 * 1e3;
@@ -82,7 +84,10 @@ export class SocketIO {
   private readonly socketOpts: IOTypes.ServerOptions;
   protected pubSub: GenericPubSub<IntermediateTransportData>;
 
-  constructor({ https, socketAdapter, socketOpts, pubSub }: SocketOpts = {}) {
+  constructor({ https, socketAdapter, socketOpts, pubSub }: SocketOpts = {},
+    readonly botCredentials: string = undefined,
+    private bots: any[] = undefined,
+  ) {
     this.clientInfo = new Map();
     this.roomInfo = new Map();
     this.perMatchQueue = new Map();
@@ -147,6 +152,37 @@ export class SocketIO {
     this.pubSub.unsubscribeAll(getPubSubChannelId(matchID));
   }
 
+  private async moveBot(master: Master, matchID: string, bot: any) {
+      // the bot moves if it can
+      const fetchResult = StorageAPI.isSynchronous(master.storageAPI)
+          ? master.storageAPI.fetch(matchID, {state: true})
+          : await master.storageAPI.fetch(matchID, {state: true});
+      const state = fetchResult.state;
+
+      if (state.ctx.currentPlayer === '0') {
+        // Not the bot's turn.
+        return;
+      }
+
+      //const bots = Array.from({length: -1}, (_, index) => ""+(index + 1));
+      let bots = {};
+      for (var i = 1; i < state.ctx.numPlayers; i++) {
+        bots[i+""] = 0;
+      }
+      let botId = GetBotPlayer(state, bots);
+      const botAction = await bot.play(
+        state,
+        botId
+      );
+
+      await master.onUpdate({
+        type: 'MAKE_MOVE', payload: {
+          ...botAction.action.payload,
+          credentials: this.botCredentials,
+        }
+      }, state._stateID, matchID, botId);
+  }
+
   init(
     app: Server.App & { _io?: IOTypes.Server },
     games: Game[],
@@ -170,7 +206,8 @@ export class SocketIO {
       io.adapter(this.socketAdapter);
     }
 
-    for (const game of games) {
+    let games_and_bots = games.map((left, idx) => [left, this.bots[idx]]);
+    for (const [game, bot] of games_and_bots) {
       const nsp = app._io.of(game.name);
       const filterPlayerView = getFilterPlayerView(game);
 
@@ -185,9 +222,10 @@ export class SocketIO {
           );
 
           const matchQueue = this.getMatchQueue(matchID);
-          await matchQueue.add(() =>
-            master.onUpdate(action, stateID, matchID, playerID)
-          );
+          await matchQueue.add(async () => {
+            await master.onUpdate(action, stateID, matchID, playerID);
+            await this.moveBot(master, matchID, bot);
+          });
         });
 
         socket.on('sync', async (...args: Parameters<Master['onSync']>) => {
