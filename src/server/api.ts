@@ -215,6 +215,80 @@ export const configureRouter = ({
   });
 
   /**
+   * GET /teams/123-4567-890
+   *
+   * teamState: {
+   *   "name": "Valami Únikód árvíztűrő tükörfúrógép",
+   *   "playerName": "ekezet nelkul valami csapatnev esetleg",
+   *   "credentials": "random generált cucc, a matchhez bejelentkezett játékos",
+   *   "relay": {
+   *     "state": "FINISHED",
+   *     "score": 123,
+   *     "startAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "endAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "matchID": "xxx"
+   *   },
+   *   "strategy": {
+   *     "state": "IN PROGRESS",
+   *     "startAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "endAt": "2022-10-09 13:28:00Z01:00:00",
+   *     "matchID": "xxx"
+   *   },
+   *   // INIT, RELAY, STRATEGY, FINISHED
+   *   "pageState": "RELAY"
+   * }
+   *
+   * @param {string} code Team code
+   * @return - a TeamState object
+   *
+   * TODO
+   */
+
+  /**
+   * POST /teams/123-4567-890/start-relay
+   * @param {string} code Team code
+   * @return - {"matchID": "xxx"}
+   */
+
+  /**
+   * Get data about a specific match.
+   *
+   * @param {string} name - The name of the game.
+   * @param {string} id - The ID of the match.
+   * @return - A match object.
+   */
+   router.get('/games/:name/:id/logs', async (ctx) => {
+    // TODO authorize!!
+    const matchID = ctx.params.id;
+    const { log } = await (db as StorageAPI.Async).fetch(matchID, {
+      log: true,
+    });
+    if (!log) {
+      ctx.throw(404, 'Match ' + matchID + ' not found');
+    }
+    ctx.body = log;
+  });
+
+  /**
+   * Get data about a specific match.
+   *
+   * @param {string} name - The name of the game.
+   * @param {string} id - The ID of the match.
+   * @return - A match object.
+   */
+   router.get('/games/:name/:id/state', async (ctx) => {
+    // TODO authorize!!
+    const matchID = ctx.params.id;
+    const { state } = await (db as StorageAPI.Async).fetch(matchID, {
+      state: true,
+    });
+    if (!state) {
+      ctx.throw(404, 'Match ' + matchID + ' not found');
+    }
+    ctx.body = state;
+  });
+
+  /**
    * Join a given match.
    *
    * @param {string} name - The name of the game.
